@@ -1,2 +1,3 @@
-# Kubernetes-Lab
-Kubernetes lab with Minikube and AWS EKS. Covers deployments, services, Helm charts, networking, debugging and DevOps workflows.
+# Kubernetes Lab - Webapp
+
+A containerized Flask webapp deployed on Kubernetes with 3 replicas, LoadBalancer service, and ConfigMap-based configuration.
