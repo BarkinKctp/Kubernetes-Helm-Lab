@@ -6,6 +6,19 @@ metadata:
     env: dev
 ---
 apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-quota
+  namespace: dev
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: webapp-service
@@ -43,6 +56,11 @@ metadata:
     tier: frontend
 spec:
   replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: webapp
@@ -56,9 +74,29 @@ spec:
       containers:
       - name: webapp
         image: brkndocker/webapp:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
         envFrom:
         - configMapRef:
             name: webapp-configv1.0
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
        

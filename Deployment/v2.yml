@@ -15,13 +15,23 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-    name: http
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
   selector:
     app: webapp
     tier: frontend
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webapp-configv1.0
+  namespace: dev
+data:
+  BG_COLOR: lightblue
+  FONT_COLOR: darkblue
+  CUSTOM_HEADER: "Welcome to the Webapp v1.0"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -44,8 +54,10 @@ spec:
         tier: frontend
     spec:
       containers:
-      - name: webapp
-        image: brkndocker/webapp:latest
-        ports:
-        - containerPort: 80
-       
+        - name: webapp
+          image: brkndocker/webapp:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: webapp-configv1.0

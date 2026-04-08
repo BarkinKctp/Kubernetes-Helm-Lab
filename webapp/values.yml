@@ -1,0 +1,12 @@
+appName: webapp
+
+namespace: default
+
+configMap:
+  name: webapp-configv1.0
+  data:
+    CUSTOM_HEADER: "Welcome to the Webapp v1.0"
+
+image:
+  name: brkndocker/webapp
+  tag: latest
