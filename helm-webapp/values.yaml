@@ -2,6 +2,8 @@ appName: webapp
 
 namespace: default
 
+replicas: 3
+
 configMap:
   name: webapp-configv1.0
   data:

@@ -1,5 +1,7 @@
 namespace: dev
 
+replicas: 2
+
 configMap:
   data:
     CUSTOM_HEADER: "Welcome to the Webapp v1.0 with Dev Config"

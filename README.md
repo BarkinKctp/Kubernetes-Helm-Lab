@@ -28,7 +28,7 @@ alias k=kubectl
 
 minikube start --driver=docker
 
-helm install webapp-release webapp/ --values webapp/values.yml
+helm install webapp-release helm-webapp/ --values helm-webapp/values.yaml
 ```
 
 **Access the app:**
@@ -47,7 +47,7 @@ k port-forward svc/webapp 8888:80
 
 k create namespace dev
 
-helm install mywebapp-release-dev webapp/ --values webapp/values.yml -f webapp/values-dev.yml -n dev
+helm install mywebapp-release-dev helm-webapp/ --values helm-webapp/values.yaml -f helm-webapp/values-dev.yaml -n dev
 
 ```
 
@@ -64,13 +64,13 @@ k port-forward svc/webapp 8888:80 -n dev
 minikube start --driver=docker
 
 # Basic deployment
-k apply -f Deployment/v1.yml
+k apply -f Deployment/v1.yaml
 
 # Or with more features (dev namespace, ConfigMap,)
-k apply -f Deployment/v2.yml
+k apply -f Deployment/v2.yaml
 
 # Or advanced (ResourceQuota, health checks, resource limits)
-k apply -f Deployment/v3.yml
+k apply -f Deployment/v3.yaml
 
 minikube tunnel
 
@@ -86,7 +86,8 @@ k get svc -n dev
 
 ## Project Structure
 
-- **webapp/** - Helm chart with ConfigMap-based configuration
+- **helm-webapp/** - Helm chart with ConfigMap-based configuration
+- **kustom-webapp/** - Kustomize setup with base and environment overlays (dev/prod)
 - **Deployment/** - Progressive K8s manifests (v1: simple → v3: advanced with health checks & limits)
 - **Dockerapp/** - Flask app source code with Dockerfile
 
@@ -110,3 +111,4 @@ Common issues:
 - **Pods stuck in CrashLoopBackOff** — Check logs: `k logs <pod-name>`
 - **Cannot access app** — Ensure port-forward or minikube tunnel is running
 - **Image pull errors** — Build locally with `eval $(minikube docker-env)` first
+- **Parameters/manifests don't show up in ArgoCD or Helm templates fail** — Ensure all YAML files use `.yaml` extension (not `.yml`). Kustomize and Helm expect standard `.yaml` file names
