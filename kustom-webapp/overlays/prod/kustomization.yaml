@@ -10,5 +10,5 @@ patchesStrategicMerge:
   - replicas.yaml
 
 configMapGenerator:
-  - name: kustom-map
+  - name: kustom-map-config
     env: config.properties
