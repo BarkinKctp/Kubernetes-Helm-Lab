@@ -10,5 +10,15 @@ patchesStrategicMerge:
   - replicas.yaml
 
 configMapGenerator:
-  - name: kustom-map
+  - name: kustom-map-dev
     env: config.properties
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: kustom-map-dev
+    targets:
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - spec.template.spec.containers.*.envFrom.*.configMapRef.name
