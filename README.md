@@ -1,6 +1,8 @@
-[![Minikube](https://img.shields.io/badge/Minikube-informational?logo=kubernetes)](https://minikube.sigs.k8s.io/docs/start/)
-[![Helm](https://img.shields.io/badge/Helm-informational?logo=helm)](https://helm.sh/docs/intro/install/)
-[![kubectl](https://img.shields.io/badge/kubectl-informational?logo=kubernetes)](https://kubernetes.io/docs/tasks/tools/)
+[![Minikube](https://img.shields.io/badge/Minikube-3b82f6?logo=kubernetes&logoColor=white)](https://minikube.sigs.k8s.io/docs/start/)
+[![Helm](https://img.shields.io/badge/Helm-f97316?logo=helm&logoColor=white)](https://helm.sh/docs/intro/install/)
+[![kubectl](https://img.shields.io/badge/kubectl-06b6d4?logo=kubernetes&logoColor=white)](https://kubernetes.io/docs/tasks/tools/)
+[![ArgoCD](https://img.shields.io/badge/ArgoCD-a855f7?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
+[![AWS](https://img.shields.io/badge/AWS-ff9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com/eks/)
 
 # Kubernetes Lab - Webapp
 
