@@ -6,42 +6,32 @@
 
 # Kubernetes Lab - Webapp
 
-A containerized Flask webapp deployed on Kubernetes with Helm charts and progressive deployment examples.
-
-## Prerequisites
-
-- Minikube, Helm, kubectl installed
+Flask webapp demonstrating Kubernetes deployment patterns with Helm, Kustomize, and ArgoCD.
 
 ## Quick Start
 
-### Setup (optional alias)
+Prerequisites: Minikube, Helm, kubectl
 
 ```bash
-alias k=kubectl
-```
-
-### Option 1: Helm Deployment
-
-#### Basic (default namespace)
-
-```bash
-
 minikube start --driver=docker
-
-helm install webapp-release helm-webapp/ --values helm-webapp/values.yaml
 ```
 
-**Access the app:**
+### Alias (optional)
+
+alias k=kubectl
+
+## Deployment Options
+
+### Helm (Default)
 
 ```bash
+helm install webapp helm-webapp/ --values helm-webapp/values.yaml
 
 k port-forward svc/webapp 8888:80
-
 # Open: http://localhost:8888
-
 ```
 
-#### With Dev Namespace
+### Helm with Dev Overlay
 
 ```bash
 
@@ -49,66 +39,64 @@ k create namespace dev
 
 helm install mywebapp-release-dev helm-webapp/ --values helm-webapp/values.yaml -f helm-webapp/values-dev.yaml -n dev
 
-```
-
-**Access the app:**
-
-```bash
 k port-forward svc/webapp 8888:80 -n dev
 # Open: http://localhost:8888
 ```
 
-### Option 2: Static Manifests (kubectl)
+### Kustomize
+
+Environment-specific overlays (config, replicas, patches applied to base).
 
 ```bash
-minikube start --driver=docker
 
-# Basic deployment
-k apply -f Deployment/v1.yaml
+kubectl apply -k kustom-webapp/overlays/prod
 
-# Or with more features (dev namespace, ConfigMap,)
-k apply -f Deployment/v2.yaml
-
-# Or advanced (ResourceQuota, health checks, resource limits)
-k apply -f Deployment/v3.yaml
-
-minikube tunnel
-
+k port-forward svc/webapp 8888:80
+# Open: http://localhost:8888
 ```
 
-**Access the app:**
+### Static Manifests
 
 ```bash
+kubectl apply -f Deployment/v1.yaml
+kubectl apply -f Deployment/v2.yaml
+kubectl apply -f Deployment/v3.yaml
 
-k get svc -n dev
-# Open: http://<EXTERNAL-IP>
+k port-forward svc/webapp 8888:80
+# Open: http://localhost:8888
+```
+
+## Manage
+
+```bash
+# Expose via LoadBalancer (local)
+minikube tunnel
+k get svc
+
+# Cleanup
+helm uninstall webapp
+helm uninstall mywebapp-release-dev -n dev
 ```
 
 ## Project Structure
 
-- **helm-webapp/** - Helm chart with ConfigMap-based configuration
-- **kustom-webapp/** - Kustomize setup with base and environment overlays (dev/prod)
-- **Deployment/** - Progressive K8s manifests (v1: simple → v3: advanced with health checks & limits)
-- **Dockerapp/** - Flask app source code with Dockerfile
+- **helm-webapp/** - Helm chart with environment overlays
+- **kustom-webapp/** - Kustomize base + dev/prod overlays with replacements
+- **Deployment/** - Static manifests (v1-v3 progression)
+- **Dockerapp/** - Flask app source
 
-## Cleanup
+## Features
 
-```bash
-# Uninstall release
-helm uninstall webapp-release
-helm uninstall mywebapp-release-dev -n dev
+Security: Non-root user, read-only filesystem  
+Availability: HPA, PDB, rolling updates  
+Configuration: Immutable ConfigMaps, environment-specific overlays
 
-# Pods will terminate
-k get pods -n dev
-```
+## ArgoCD Documentation
+
+- [ArgoCD GitOps Deployment](docs/ArgoCd.md) - ConfigMap immutability pattern with ArgoCD
 
 ## Troubleshooting
 
-For help with Minikube issues, refer to the [official Minikube documentation](https://minikube.sigs.k8s.io/docs/).
-
-Common issues:
-
 - **Pods stuck in CrashLoopBackOff** — Check logs: `k logs <pod-name>`
 - **Cannot access app** — Ensure port-forward or minikube tunnel is running
-- **Image pull errors** — Build locally with `eval $(minikube docker-env)` first
-- **Parameters/manifests don't show up in ArgoCD or Helm templates fail** — Ensure all YAML files use `.yaml` extension (not `.yml`). Kustomize and Helm expect standard `.yaml` file names
+- **YAML files not recognized** — Use `.yaml` extension (not `.yml`)

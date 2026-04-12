@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - service.yaml
+  - hpa.yaml
+  - pdb.yaml
 
 commonLabels:
   app: webapp

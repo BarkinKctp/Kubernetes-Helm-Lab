@@ -7,6 +7,7 @@ metadata:
     tier: frontend
 spec:
   replicas: 3
+  revisionHistoryLimit: 5
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -22,12 +23,21 @@ spec:
         app: webapp
         tier: frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsReadOnlyRootFilesystem: true
       containers:
         - name: webapp
           image: brkndocker/webapp:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           livenessProbe:
             httpGet:
               path: /
