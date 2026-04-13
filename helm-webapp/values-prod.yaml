@@ -1,0 +1,29 @@
+namespace: prod
+
+replicas: 3
+
+image:
+  repository: ${AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/helm-aws-webapp
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+configMap:
+  data:
+    CUSTOM_HEADER: "Welcome to the Webapp v1.0 with Prod Config on AWS EKS"

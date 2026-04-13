@@ -1,8 +1,8 @@
-[![Minikube](https://img.shields.io/badge/Minikube-3b82f6?logo=kubernetes&logoColor=white)](https://minikube.sigs.k8s.io/docs/start/)
-[![Helm](https://img.shields.io/badge/Helm-f97316?logo=helm&logoColor=white)](https://helm.sh/docs/intro/install/)
-[![kubectl](https://img.shields.io/badge/kubectl-06b6d4?logo=kubernetes&logoColor=white)](https://kubernetes.io/docs/tasks/tools/)
-[![ArgoCD](https://img.shields.io/badge/ArgoCD-a855f7?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
-[![AWS](https://img.shields.io/badge/AWS-ff9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com/eks/)
+[![Minikube](https://img.shields.io/badge/local%20cluster-Minikube-326CE5)](https://minikube.sigs.k8s.io/docs/start/)
+[![Helm](https://img.shields.io/badge/package%20manager-Helm-0F1689)](https://helm.sh/docs/intro/install/)
+[![kubectl](https://img.shields.io/badge/CLI-kubectl-326CE5)](https://kubernetes.io/docs/tasks/tools/)
+[![ArgoCD](https://img.shields.io/badge/CI%2FCD-ArgoCD-EF7B4D)](https://argoproj.github.io/cd/)
+[![AWS](https://img.shields.io/badge/cloud-AWS-FF9900)](https://aws.amazon.com/eks/)
 
 # Kubernetes Lab - Webapp
 
@@ -91,9 +91,10 @@ Security: Non-root user, read-only filesystem
 Availability: HPA, PDB, rolling updates  
 Configuration: Immutable ConfigMaps, environment-specific overlays
 
-## ArgoCD Documentation
+## Documentation
 
-- [ArgoCD GitOps Deployment](docs/ArgoCd.md) - ConfigMap immutability pattern with ArgoCD
+- [ArgoCD GitOps Deployment](docs/ArgoCd.md) - Local ArgoCD with GitOps workflow
+- [AWS EKS Deployment](docs/AwsEks.md) - Production EKS cluster with Helm
 
 ## Troubleshooting
 
