@@ -25,7 +25,7 @@ Add all permissions for: EKS, EC2, IAM, CloudFormation, ECR, autoscaling, logs
 
 ```bash
 # Login to ECR
-aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 056354905792.dkr.ecr.eu-west-1.amazonaws.com
+aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com
 
 # Create repository
 aws ecr create-repository --repository-name helm-aws-webapp --region eu-west-1
@@ -38,10 +38,10 @@ aws ecr create-repository --repository-name helm-aws-webapp --region eu-west-1
 docker build -t helm-aws-webapp ./Dockerapp
 
 # Tag for ECR
-docker tag helm-aws-webapp:latest 056354905792.dkr.ecr.eu-west-1.amazonaws.com/helm-aws-webapp:latest
+docker tag helm-aws-webapp:latest <ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com/helm-aws-webapp:latest
 
 # Push to ECR
-docker push 056354905792.dkr.ecr.eu-west-1.amazonaws.com/helm-aws-webapp:latest
+docker push <ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com/helm-aws-webapp:latest
 ```
 
 ## 4. Install eksctl
@@ -137,12 +137,12 @@ eksctl delete cluster --name webapp-prod --region eu-west-1
 
 ## Production Best Practices Applied
 
-✅ **3 replicas** — High availability (odd number)
-✅ **HPA enabled** (3-10 replicas) — Auto-scales based on CPU
-✅ **LoadBalancer service** — Production-grade ingress
-✅ **Resource limits** — Prevents resource starvation
-✅ **t3.medium nodes** — Cost-efficient, sufficient for web app
-✅ **Auto-scaling group** (min 2, max 5) — Handles traffic spikes
+**3 replicas** — High availability (odd number)
+**HPA enabled** (3-10 replicas) — Auto-scales based on CPU
+**LoadBalancer service** — Production-grade ingress
+**Resource limits** — Prevents resource starvation
+ **t3.medium nodes** — Cost-efficient, sufficient for web app
+ **Auto-scaling group** (min 2, max 5) — Handles traffic spikes
 
 ## Troubleshooting
 
