@@ -78,6 +78,22 @@ helm uninstall webapp
 helm uninstall mywebapp-release-dev -n dev
 ```
 
+## Switching Between Contexts (Minikube ↔ AWS EKS)
+
+```bash
+# List all available contexts
+kubectl config get-contexts
+
+# Switch to Minikube
+kubectl config use-context minikube
+
+# Switch to AWS EKS (if set up)
+kubectl config use-context <account-id>@webapp-prod.eu-west-1.eksctl.io
+
+# Show current context
+kubectl config current-context
+```
+
 ## Project Structure
 
 - **helm-webapp/** - Helm chart with environment overlays

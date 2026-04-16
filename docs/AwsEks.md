@@ -4,7 +4,7 @@ Deploy Flask webapp to AWS EKS (Elastic Kubernetes Service) in production.
 
 ## Prerequisites
 
-- AWS Account with IAM user (e.g., `Terraform`)
+- AWS Account with IAM user
 - eksctl, kubectl, Docker, AWS CLI installed
 
 ## 1. IAM Permissions Setup
@@ -12,12 +12,12 @@ Deploy Flask webapp to AWS EKS (Elastic Kubernetes Service) in production.
 **Option A: Managed Policies (recommended)**
 
 ```bash
-aws iam attach-user-policy --user-name Terraform --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
-aws iam attach-user-policy --user-name Terraform --policy-arn arn:aws:iam::aws:policy/AmazonECS_FullAccess
+aws iam attach-user-policy --user-name <IAM_USER> --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+aws iam attach-user-policy --user-name <IAM_USER> --policy-arn arn:aws:iam::aws:policy/AmazonECS_FullAccess
 ```
 
 **Option B: Manual Setup (if managed policies fail)**
-Go to: **IAM → Users → Terraform → Add permissions → Create inline policy**
+Go to: **IAM → Users → <IAM_USER> → Add permissions → Create inline policy**
 
 Add all permissions for: EKS, EC2, IAM, CloudFormation, ECR, autoscaling, logs
 
@@ -72,54 +72,69 @@ eksctl create cluster \
   --managed
 ```
 
-**Wait 10-15 minutes** — CloudFormation creates VPC, subnets, security groups, auto-scaling groups, kubeconfig auto-configured.
+**Wait 10-15 minutes** — CloudFormation provisions infrastructure and configures kubeconfig.
 
-Verify cluster:
+Update kubeconfig:
 
 ```bash
+eksctl utils write-kubeconfig --cluster=webapp-prod --region=eu-west-1 --set-kubeconfig-context=true
 kubectl get nodes
 ```
 
 ## 6. Configure Node IAM Permissions
 
-```bash
-# Attach ECR read permission to node instance role
-aws iam attach-role-policy \
-  --role-name eksctl-webapp-prod-nodegroup-webapp-nodes-NodeInstanceRole-XXXXX \
-  --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-```
-
-**Find actual role name:**
+Allow nodes to pull images from ECR:
 
 ```bash
-eksctl get nodegroup --cluster webapp-prod --region eu-west-1
+aws iam list-roles --query 'Roles[?contains(RoleName, `webapp-prod`)].RoleName'
+aws iam attach-role-policy --role-name <ROLE_NAME> --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
 ```
+
+**Or via AWS Console:** IAM → Roles → Search "NodeInstanceRole" → Find webapp-prod role → Copy exact name.
+
+**Why:** Without this, nodes cannot pull images from ECR → ImagePullBackOff errors.
 
 ## 7. Deploy with Helm
 
+Deploy your Flask app to the EKS cluster with production settings.
+
 ```bash
-# Create prod namespace
+# Create prod namespace (isolated environment)
 kubectl create namespace prod
 
-# Deploy with prod values
+# Deploy Helm chart with production values
+# Replace <ACCOUNT_ID> with your AWS account ID
 helm install webapp-prod helm-webapp/ \
   --values helm-webapp/values.yaml \
   -f helm-webapp/values-prod.yaml \
+  --set image.repository=<ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com/helm-aws-webapp \
   --namespace prod \
   --create-namespace
 
-# Verify deployment
+# Verify all pods are running
+kubectl get pods -n prod
+# Should show: webapp-prod-xxxxx  1/1  Running
+
+# Verify service and get LoadBalancer IP
 kubectl get svc -n prod
-# EXTERNAL-IP will be the ELB DNS name — takes ~2 min to provision
+# EXTERNAL-IP column shows the ELB DNS name (takes ~2 min to provision)
 ```
+
+**What gets deployed:**
+
+- 3 replicas (HA)
+- Auto-scaling (3-10 pods)
+- AWS LoadBalancer
+- Resource limits
+- Environment ConfigMap
 
 ## 8. Access Application
 
 ```bash
-# Option A: Wait for LoadBalancer to provision, then use EXTERNAL-IP
+# Option A: Via LoadBalancer (~2 min for provisioning)
 kubectl get svc -n prod --watch
 
-# Option B: Port forward immediately
+# Option B: Immediate port-forward
 kubectl port-forward svc/webapp-prod 8888:80 -n prod
 # Open: http://localhost:8888
 ```
@@ -127,27 +142,58 @@ kubectl port-forward svc/webapp-prod 8888:80 -n prod
 ## Cleanup
 
 ```bash
-# Uninstall Helm release
 helm uninstall webapp-prod -n prod
-
-# Delete EKS cluster (takes ~15 minutes)
+kubectl delete namespace prod
 eksctl delete cluster --name webapp-prod --region eu-west-1
-# Deletes: VPC, subnets, security groups, ELB, auto-scaling groups
 ```
 
-## Production Best Practices Applied
+## Switching Between Contexts (Minikube ↔ AWS EKS)
 
-**3 replicas** — High availability (odd number)
-**HPA enabled** (3-10 replicas) — Auto-scales based on CPU
-**LoadBalancer service** — Production-grade ingress
-**Resource limits** — Prevents resource starvation
- **t3.medium nodes** — Cost-efficient, sufficient for web app
- **Auto-scaling group** (min 2, max 5) — Handles traffic spikes
+Your kubeconfig stores **multiple Kubernetes clusters**. Easy to switch between local development (Minikube) and production (EKS):
+
+```bash
+kubectl config get-contexts       # List all
+kubectl config use-context minikube
+kubectl config use-context <account-id>@webapp-prod.eu-west-1.eksctl.io
+```
+
+## Production Best Practices
+
+- **3 replicas** — High availability
+- **HPA enabled** — Auto-scaling on CPU
+- **LoadBalancer** — Production ingress
+- **Resource limits** — Prevent starvation
+- **t3.medium nodes** — Cost-efficient
+- **Auto-scaling group** (2-5) — Handle spikes
 
 ## Troubleshooting
 
-- **AccessDenied on ECR** → Verify IAM user has ecr:GetAuthorizationToken
-- **Nodes not pulling images** → Check node role has AmazonEC2ContainerRegistryReadOnly
-- **PENDING service** → Wait for ELB provisioning (~2 min)
-- **Pod CrashLoopBackOff** → `kubectl logs <pod-name> -n prod`
-- **Cluster creation failed** → Check AWS console CloudFormation for stack errors
+### Cluster Creation Issues
+
+- **Stack stuck (>20 min)** → `eksctl get cluster --region eu-west-1` and check AWS CloudFormation console
+- **Insufficient IAM permissions** → Verify Step 1 policies attached
+- **VPC/Subnet issues** → Check AWS VPC console
+
+### Node & ECR Issues (Step 6)
+
+- **ImagePullBackOff** → Re-run Step 6 IAM attachment
+- **Cannot find node role** → `eksctl get nodegroup --cluster webapp-prod --region eu-west-1 -o json | grep NodeInstanceRoleArn`
+
+### Helm Deployment Issues
+
+- **Pod stuck in Pending** → `kubectl describe pod <pod-name> -n prod`
+- **CrashLoopBackOff** → `kubectl logs <pod-name> -n prod`
+- **PENDING external IP** → Wait 2-3 min
+
+### General Debugging
+
+```bash
+kubectl cluster-info
+kubectl get all -n prod
+kubectl describe node <node-name>
+kubectl get events -n prod --sort-by='.lastTimestamp'
+```
+
+### Cost
+
+EKS ~$0.10/hr + nodes ~$0.08/hr + ELB ~$0.025/hr. Delete when done.
