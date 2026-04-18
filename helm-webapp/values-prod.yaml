@@ -3,8 +3,7 @@ namespace: prod
 replicas: 3
 
 image:
-  # Account ID injected via --set at deploy time
-  repository: ""
+  repository: ""  # Set by Terraform - (passed via ArgoCD/values-prod.yaml)
   tag: "latest"
   pullPolicy: IfNotPresent
 

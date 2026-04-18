@@ -1,0 +1,46 @@
+name: Build, tag, and push image to Amazon ECR
+
+on:
+    push:
+        branches: [ main ]
+        paths:
+            - "Dockerapp/**"
+
+env:
+    AWS_REGION: eu-west-1
+    ECR_REPO: helm-aws-webapp
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write
+            contents: write
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Configure AWS credentials via OIDC
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/terraform-github-actions
+                  aws-region: eu-west-1
+
+            - name: Login to ECR
+              uses: aws-actions/amazon-ecr-login@v2
+
+            - name: Build & push
+              run: |
+                ECR=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}
+                docker build -t $ECR:${{ github.sha }} -t $ECR:latest ./Dockerapp
+                docker push $ECR:${{ github.sha }}
+                docker push $ECR:latest
+
+            - name: Update Helm values with new image tag
+              run: |
+                sed -i 's/tag: .*/tag: "${{ github.sha }}"/' helm-webapp/values-prod.yaml
+                git config user.email "github-actions[bot]@users.noreply.github.com"
+                git config user.name "github-actions[bot]"
+                git add helm-webapp/values-prod.yaml
+                git commit -m "CI: bumped image tag to ${{ github.sha }} [skip ci]" || echo "No changes to commit"
+                git push

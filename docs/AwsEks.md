@@ -17,7 +17,7 @@ aws iam attach-user-policy --user-name <IAM_USER> --policy-arn arn:aws:iam::aws:
 ```
 
 **Option B: Manual Setup (if managed policies fail)**
-Go to: **IAM → Users → <IAM_USER> → Add permissions → Create inline policy**
+Navigate to: **IAM → Users → <IAM_USER> → Add permissions → Create inline policy**
 
 Add all permissions for: EKS, EC2, IAM, CloudFormation, ECR, autoscaling, logs
 
@@ -72,9 +72,9 @@ eksctl create cluster \
   --managed
 ```
 
-**Wait 10-15 minutes** — CloudFormation provisions infrastructure and configures kubeconfig.
+**Wait 10-15 minutes** — CloudFormation provisions infrastructure and configures the kubeconfig file.
 
-Update kubeconfig:
+Update the kubeconfig:
 
 ```bash
 eksctl utils write-kubeconfig --cluster=webapp-prod --region=eu-west-1 --set-kubeconfig-context=true
@@ -92,11 +92,11 @@ aws iam attach-role-policy --role-name <ROLE_NAME> --policy-arn arn:aws:iam::aws
 
 **Or via AWS Console:** IAM → Roles → Search "NodeInstanceRole" → Find webapp-prod role → Copy exact name.
 
-**Why:** Without this, nodes cannot pull images from ECR → ImagePullBackOff errors.
+**Note:** Without this IAM policy, nodes cannot pull images from ECR, resulting in ImagePullBackOff errors.
 
 ## 7. Deploy with Helm
 
-Deploy your Flask app to the EKS cluster with production settings.
+Deploy the Flask application to the EKS cluster with production settings.
 
 ```bash
 # Create prod namespace (isolated environment)
@@ -149,22 +149,13 @@ eksctl delete cluster --name webapp-prod --region eu-west-1
 
 ## Switching Between Contexts (Minikube ↔ AWS EKS)
 
-Your kubeconfig stores **multiple Kubernetes clusters**. Easy to switch between local development (Minikube) and production (EKS):
+The kubeconfig file stores **multiple Kubernetes clusters**. It is easy to switch between local development (Minikube) and production (EKS):
 
 ```bash
 kubectl config get-contexts       # List all
 kubectl config use-context minikube
 kubectl config use-context <account-id>@webapp-prod.eu-west-1.eksctl.io
 ```
-
-## Production Best Practices
-
-- **3 replicas** — High availability
-- **HPA enabled** — Auto-scaling on CPU
-- **LoadBalancer** — Production ingress
-- **Resource limits** — Prevent starvation
-- **t3.medium nodes** — Cost-efficient
-- **Auto-scaling group** (2-5) — Handle spikes
 
 ## Troubleshooting
 
@@ -176,7 +167,7 @@ kubectl config use-context <account-id>@webapp-prod.eu-west-1.eksctl.io
 
 ### Node & ECR Issues (Step 6)
 
-- **ImagePullBackOff** → Re-run Step 6 IAM attachment
+- **ImagePullBackOff** → Run Step 6 IAM attachment again
 - **Cannot find node role** → `eksctl get nodegroup --cluster webapp-prod --region eu-west-1 -o json | grep NodeInstanceRoleArn`
 
 ### Helm Deployment Issues
