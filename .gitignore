@@ -1,0 +1,73 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Credentials & secrets
+/tmp/argocd-creds.txt
+.ssh/
+*.key
+*.pem
+kubeconfig*
+
+# Docker
+.dockerignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Helm
+charts/
+Chart.lock
+
+# Kubernetes
+.kubeconfig
+
+# CI/CD
+.github/workflows/*.log
+
+# Logs
+*.log
+logs/
